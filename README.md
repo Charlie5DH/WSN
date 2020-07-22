@@ -56,3 +56,14 @@ The radios are able to automatically increase their transmission power to improv
 - TensorFlow 1.0.0
 - Python3
 - sickit-learn 0.18.2, numpy, pandas
+
+## References
+
+- Antayhua RA, Pereira MD, Fernandes NC, Rangel de Sousa F. Exploiting the RSSI Long-Term Data of a WSN for the RF Channel Modeling in EPS Environments. Sensors. 2020 Jan;20(11):3076.
+- https://machinelearningmastery.com/cnn-models-for-human-activity-recognition-time-series-classification/
+- https://www.seanabu.com/2016/03/22/time-series-seasonal-ARIMA-model-in-python/
+- https://www.machinelearningplus.com/time-series/arima-model-time-series-forecasting-python/
+- https://machinelearningmastery.com/how-to-develop-lstm-models-for-time-series-forecasting/
+- https://www.machinelearningplus.com/time-series/time-series-analysis-python/
+- http://ataspinar.com/
+- https://towardsdatascience.com/anomaly-detection-with-time-series-forecasting-c34c6d04b24a

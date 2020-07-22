@@ -46,7 +46,12 @@ from IPython.display import HTML
 
 # Helper functions for later
 
-# Helper functions for later
+def get_radios_rec_powers(df):
+    RADIOS = df.Module.unique()[:7]
+    RADIOS = np.append(RADIOS, df.Module.unique()[-1])
+    POWERS = ['P_Tx1(dbm)', 'P_Tx2(dbm)', 'P_Tx3(dbm)', 'P_Tx4(dbm)', 'P_Tx5(dbm)', 'P_Tx6(dbm)', 'P_Tx7(dbm)']
+    RECEIVERS = np.array(df_powers['Receiver'].unique())
+    return RADIOS, RECEIVERS, POWERS
 
 def drop_power(df, Powers):
     # for dropping the -9 dbm value
@@ -59,15 +64,15 @@ def drop_power(df, Powers):
     return df
 
 def create_RSSI_dataframe(df_powers, plot=True, start_date='2018-01-01', end_date='2018-02-16', raw=True, resample_time='60Min'):
-    
+
     receiver = np.array(df_powers['Receiver'].unique())
-    
+
     dff = pd.DataFrame(data=None)
     for i in range(len(receiver)):
         subset, serie, transmitters, Tx = arange_RSSI_serie(df_powers, receiver=i, start_date=start_date, end_date=end_date, plot=False, plot_entire=False)
         serie['Receiver'] = RADIOS[i]
         dff = pd.concat([dff, serie])
-    
+
     if plot==True:
         color=['b','r','m','g','c','orange', 'y', 'grey']
         fig, axes = plt.subplots(nrows=receiver.shape[0], ncols=1, figsize=(24,28), sharey=True, sharex=True)
@@ -81,11 +86,11 @@ def create_RSSI_dataframe(df_powers, plot=True, start_date='2018-01-01', end_dat
             ax.set_title('RSSI from {}'.format(ii))
             ax.legend(loc='upper right')
         plt.tight_layout()
-    
+
     return dff
 
 def arange_RSSI_serie(df_powers, receiver=0, start_date='2018-01-01', end_date='2018-02-16', sharex=False, sharey=True, figsize=(24,14), joint=True, plot=True, plot_entire=True):
-    
+
     Receivers = np.array(df_powers['Receiver'].unique())
     subset = df_powers[df_powers['Receiver'] == Receivers[receiver]][start_date:end_date]
     subset = subset.dropna(axis=1, how='all')
@@ -119,8 +124,8 @@ def arange_RSSI_serie(df_powers, receiver=0, start_date='2018-01-01', end_date='
             subset['P_Tx1(dbm)'].plot()
             plt.title('RSSI from Neighbour 1 over the entire period for Receiver {}'.format(subset['Receiver'].unique()[0]))
             plt.xticks(rotation=0);
-            plt.tight_layout()   
-        
+            plt.tight_layout()
+
         color=['b','r','m','g','c','black', 'y', 'grey']
         if joint==False:
             fig, axes = plt.subplots(nrows=transmitters.shape[0], ncols=1, figsize=figsize, sharex=sharex, sharey=sharey)
@@ -139,7 +144,7 @@ def arange_RSSI_serie(df_powers, receiver=0, start_date='2018-01-01', end_date='
                 axes.tick_params(labelrotation=0)
                 axes.legend(loc='upper right')
             plt.tight_layout()
-               
+
     return subset, serie, transmitters, Tx
 
 def plot_count_transmitters(dff, subset):
@@ -151,12 +156,12 @@ def plot_count_transmitters(dff, subset):
     Tx, Ptx = [], []
     for i in range(int(subset.columns[3:].shape[0]/2)):
         Tx.append(subset.columns[3:][i*2])
-    
+
     fig, axx = plt.subplots(3,3, figsize=(30,14))
     fig.delaxes(axx[2,1])
     fig.delaxes(axx[2,2])
     plt.suptitle('Transmitters in every Neighbour sendind data to Receiver '+ subset['Receiver'].unique()[0], x=0.5, y=1.02, fontsize=20)
-    if len(Tx) < 4: 
+    if len(Tx) < 4:
         fig.delaxes(axx[2,0]);fig.delaxes(axx[1,2])
         fig.delaxes(axx[1,1]);fig.delaxes(axx[1,0])
     if len(Tx) == 4:
@@ -214,14 +219,14 @@ def plot_by_date(dff, by='hour', nrows=2, ncols=4, figsize=(24,7)):
         sns.lineplot(data=data, markers=True,ax=ax, err_style='bars')
         #ax.set_xticks(np.arange(0,24,2))
     plt.tight_layout()
-    
+
 def append_temperatures_toRSSI(df, df_powers, Modules, start_date, end_date, resample_time='30S'):
     '''
-    append the temperatures of the receiver radio 
+    append the temperatures of the receiver radio
     and the temperature from transmitters
     '''
     subset, serie, transmitters, Tx = arange_RSSI_serie(df_powers, receiver=0,start_date=start_date, end_date=end_date, joint=True, plot=False)
- 
+
     # get receiver name
     for i in Modules:
         if i[-2:] == subset.Receiver.unique()[0][-2:]:
@@ -232,11 +237,11 @@ def append_temperatures_toRSSI(df, df_powers, Modules, start_date, end_date, res
     resampled_df = df[df['Module']== receiver]['2018-01-01':'2018-01-18'].resample(resample_time).mean()[['Temp_Mod', 'VBus']]
     resampled_df = resampled_df.fillna(resampled_df.bfill())
     serie['Receiver'] = receiver
-    serie[['Temp_Rece', 'VBus_Rec']] = resampled_df 
+    serie[['Temp_Rece', 'VBus_Rec']] = resampled_df
 
     # need to do this because of the difference in the names
     mod = []
-    for ii in serie.columns:    
+    for ii in serie.columns:
         last=ii[-2:]
         for i in Modules:
             if i[-2:] == last:
@@ -246,17 +251,17 @@ def append_temperatures_toRSSI(df, df_powers, Modules, start_date, end_date, res
     for tx in mod:
         resampled_df = df[df['Module']== tx]['2018-01-01':'2018-01-18'].resample(resample_time).mean()[['Temp_Mod']]
         resampled_df = resampled_df.fillna(resampled_df.bfill())
-        serie[['Temp_' + tx]] = resampled_df 
-    
+        serie[['Temp_' + tx]] = resampled_df
+
     return serie
 
 def get_outliers(df, Modules, k_factor=1.5, std_times=3, verbose=True, remove=True, method='z_score'):
-    
+
     '''
     This function identifies outliers in a Dataset.
     Two methods can be used, z_score and interquartile.
-    If the data follos a Gaussian like distribution Z_score 
-    can be used, if not is better to use the interquartile method. 
+    If the data follos a Gaussian like distribution Z_score
+    can be used, if not is better to use the interquartile method.
     This are not very good estimation since some of this outliers can be
     noveltys (correct data that explains something that happens
     or viceversa)
@@ -267,10 +272,10 @@ def get_outliers(df, Modules, k_factor=1.5, std_times=3, verbose=True, remove=Tr
     remove: If False don't remove the outliers
     Modules: Dictionary type
     '''
-    
+
     # Dataframe to save Outliers by Modules
     df_outliers = pd.DataFrame(data=None)
-    
+
     for module in Modules:
         # Take a slice of the dataset by module
         slice_of_data = df[df['Module']== module]
@@ -288,11 +293,11 @@ def get_outliers(df, Modules, k_factor=1.5, std_times=3, verbose=True, remove=Tr
             df_outliers = pd.concat([df_outliers, pd.Series(outliers, name=module, dtype=float)], axis=1)
             #print(Counter(outliers))
             outliers_removed = [x for x in slice_of_data['Temp_Mod'] if x > lower and x < upper]
-            
-            if verbose == True:    
+
+            if verbose == True:
                 print('Outliers indentified: {} in module {}'.format(len(outliers), module))
                 print('Non-outlier observations: {} in module {}'.format(len(outliers_removed), module))
-        
+
         if method == 'interquartile':
             q25, q75 = np.percentile(slice_of_data['Temp_Mod'], 25), np.percentile(slice_of_data['Temp_Mod'], 75)
             IQR = q75 - q25
@@ -302,15 +307,15 @@ def get_outliers(df, Modules, k_factor=1.5, std_times=3, verbose=True, remove=Tr
             outliers_removed = [x for x in slice_of_data['Temp_Mod'] if x >= lower and x <= upper]
             # save outliers in dataframe
             df_outliers = pd.concat([df_outliers, pd.Series(outliers, name=module, dtype=float)], axis=1)
-            
-            if verbose == True:    
+
+            if verbose == True:
                 print('Percentiles 25th = {} 75th = {} IQR = {}'.format(q25, q75, IQR.round(3)))
                 print('Outliers indentified {}'.format(len(outliers)))
                 print('Non-outlier observations: %d' % len(outliers_removed))
-            
-    
+
+
         # Remove the Outliers
-        if remove == True:    
+        if remove == True:
             for ii in np.unique(outliers):
                 if verbose == True:
                     print('Removing {} from Module {}'.format(ii, module))
@@ -319,8 +324,8 @@ def get_outliers(df, Modules, k_factor=1.5, std_times=3, verbose=True, remove=Tr
                     indexx = slice_of_data[slice_of_data['Temp_Mod'] == ii].index
                     df = df.drop(df.index[indexx], axis=0)
                     df.reset_index(inplace=True, drop=True)
-    
-    return df_outliers, df 
+
+    return df_outliers, df
 
 def create_train_test(slice_of_data, resample_time='5Min', feature_index=0, feature_name='Temp_Mod', scaler=StandardScaler(),
                       final_date='2019-01-20 00:00:05', split_date = '2019-01-01 00:00:05', test_date = '2019-01-17 00:00:05',
@@ -328,42 +333,42 @@ def create_train_test(slice_of_data, resample_time='5Min', feature_index=0, feat
     '''
     The passed dataset must have a timestamp as index.
     Resamples the dataset into a given freq (default 5 min) using
-    rolling mean and split it into training and testing dataframes. 
-    Scales the data using Sklearn Standard Scaler and returns the 
+    rolling mean and split it into training and testing dataframes.
+    Scales the data using Sklearn Standard Scaler and returns the
     numpy arrays of the x_train, y_train, x_test, y_test.
-    
+
     slice_of_data: data to be splitted
     feature_index: index of the feature to be predicted (for y_train and test)
     feature_name: name of the feature in dataset
     final_date: date limit to split
     split_date: date to start splitting
     test_date: starting test date
-    
+
     data: dataframe with all the resampled data, combines train and test
     '''
-    
+
     # Resample to 5 min with rolling mean
     slice_of_data = slice_of_data.resample(resample_time).mean()
     # Method Backward Fill
     slice_of_data = slice_of_data.fillna(slice_of_data.bfill())
-    
+
     data = slice_of_data.loc[split_date:final_date]
-    train_data = slice_of_data.loc[split_date:test_date] 
+    train_data = slice_of_data.loc[split_date:test_date]
     test_data = slice_of_data.loc[test_date:final_date]
-    
+
     #Scale the data to unit variance. We only fit in the Training data
     #scaler = StandardScaler()
     # Scale the data and convert it into dataframe for easy splitting
     X_train = pd.DataFrame(scaler.fit_transform(train_data), columns=[slice_of_data.columns]).to_numpy()
     X_test = pd.DataFrame(scaler.transform(test_data), columns=[slice_of_data.columns]).to_numpy()
-    
+
     # Since i'm going to predict only temperature
     y_train, y_test = X_train[:,feature_index], X_test[:,feature_index]
-    
+
     slice_of_data.loc[split_date:test_date][feature_name].plot(figsize=figsize, label='Train')
     slice_of_data.loc[test_date:final_date][feature_name].plot(figsize=figsize, title=('Resampled Data to {} per data (Rolling mean)'.format(resample_time)), color='r', label='Test')
     plt.legend(); plt.tight_layout()
-    
+
     return data, train_data, test_data, X_train, X_test, y_train, y_test, scaler
 
 def separete_modules(df, dictionary):
@@ -391,7 +396,7 @@ def serialize_model(model, history, name='model'):
     model.save_weights(name+'.h5')
     history.to_csv(name+'.csv')
     print("Saved model to disk")
-    
+
 def load_model(name='model'):
     json_file = open(name+'.json', 'r')
     loaded_model_json = json_file.read()
@@ -403,7 +408,7 @@ def load_model(name='model'):
     return loaded_model
 
 def split_sequences(X_train, feature_index=0, n_steps=32):
-    
+
     '''
     Split a multivariate sequence into samples for single feature prediction
     Taken and adapted from Machinelearningmastery.
@@ -413,7 +418,7 @@ def split_sequences(X_train, feature_index=0, n_steps=32):
     n_steps = n_steps+1
     # Place the column of the feature to predict at the end of the dataset
     sequences = np.concatenate([X_train, X_train[:,feature_index].reshape(-1,1)],axis=1)
-    
+
     X, y = list(), list()
     for i in range(len(sequences)):
         # find the end of this pattern
@@ -425,12 +430,12 @@ def split_sequences(X_train, feature_index=0, n_steps=32):
         seq_x, seq_y = sequences[i:end_ix-1, :-1], sequences[end_ix-1, -1]
         X.append(seq_x)
         y.append(seq_y)
-    
+
     print(np.shape(X),np.shape(y))
     return np.array(X), np.array(y)
 
 def split_sequences_multivariate(sequences, n_steps=32):
-    
+
     '''
     Split a multivariate sequence into samples for single feature prediction
     Taken and adapted from Machinelearningmastery.
@@ -440,7 +445,7 @@ def split_sequences_multivariate(sequences, n_steps=32):
     #n_steps = n_steps+1
     # Place the column of the feature to predict at the end of the dataset
     #sequences = np.concatenate([X_train, X_train[:,0].reshape(-1,1)],axis=1)
-    
+
     X, y = list(), list()
     for i in range(len(sequences)):
         # find the end of this pattern
@@ -452,7 +457,7 @@ def split_sequences_multivariate(sequences, n_steps=32):
         seq_x, seq_y = sequences[i:end_ix, :], sequences[end_ix, :]
         X.append(seq_x)
         y.append(seq_y)
-    
+
     print(np.shape(X),np.shape(y))
     return np.array(X), np.array(y)
 
@@ -462,7 +467,7 @@ def get_abs_err(X, y, model, std=3, plot=True, n_outputs=6):
     and the threshold. Plots the error distribution also.
     '''
     x_pred = model.predict(X)
-    
+
     if np.shape(y)[-1] == n_outputs:
         abs_err = np.asarray(abs(x_pred - y))
         threshold = abs_err[0,:].std()*std
@@ -492,7 +497,7 @@ def get_abs_err(X, y, model, std=3, plot=True, n_outputs=6):
 
 def create_segments(data, length=50):
     '''
-    create sequence previous data points for each data points 
+    create sequence previous data points for each data points
     in this case y is one dimensional because my output is going to be one value alone
     '''
     result = []
@@ -510,7 +515,7 @@ def plot_model_results(model, history_df, X, y, index, feature_index=0):
         pred_df = pd.DataFrame(data= np.concatenate((model.predict(X), y.reshape(-1,1)), axis=1), columns=['Prediction', 'True'], index=index)
     else:
         pred_df = pd.DataFrame(data= np.concatenate((model.predict(X)[:,feature_index].reshape(-1,1), y[:,feature_index].reshape(-1,1)), axis=1), columns=['Prediction', 'True'], index=index)
-    
+
     fig = plt.figure(figsize=(24,5))
     spec = gridspec.GridSpec(ncols=2, nrows=1, width_ratios=[1, 3])
     ax0 = fig.add_subplot(spec[0])
@@ -519,17 +524,17 @@ def plot_model_results(model, history_df, X, y, index, feature_index=0):
     ax1 = fig.add_subplot(spec[1])
     pred_df.plot(ax=ax1)
     plt.legend(loc='upper left')
-    plt.title('Prediction and Truth (Scaled)')    
+    plt.title('Prediction and Truth (Scaled)')
     plt.tight_layout()
-    
+
 def detect_anomaly(data, threshold, error, train_shape):
-    
+
     df = data
     df.reset_index(inplace=True)
     # data with anomaly label (test data part)
     test = (error >= threshold).astype(int)
     complement = pd.Series(0, index=np.arange(train_shape))
-    
+
     # add the data to the main
     df['anomaly_LSTM'] = complement.append(test, ignore_index='True')
     df.set_index('Timestamp',inplace=True)
@@ -538,26 +543,26 @@ def detect_anomaly(data, threshold, error, train_shape):
     return df, anomaly
 
 def get_anomaly_and_pred(model, X, y, threshold, test_data, n_features=6, feature=0):
-    
+
     index=test_data.index[64:]
-    if np.shape(y)[-1] == n_features: 
+    if np.shape(y)[-1] == n_features:
         predictions = np.concatenate((model.predict(X)[:,feature].reshape(-1,1), y[:,feature].reshape(-1,1)), axis=1)
     else:
         predictions = np.concatenate((model.predict(X), y.reshape(-1,1)), axis=1)
-        
+
     predictions_df = pd.DataFrame(data=predictions, columns=['Pred','True'], index=index)
     predictions_df['error'] = abs(predictions_df['True'] - predictions_df['Pred'])
 
     dates_index = predictions_df['error'].loc[predictions_df.error >= threshold].index
 
     anomaly = pd.Series(data=np.zeros(shape=(test_data.shape[0])), index=test_data.index, name='anomalies')
-    anomaly.loc[dates_index] = predictions_df['error'].loc[predictions_df.error >= threshold].values.astype(bool)    
+    anomaly.loc[dates_index] = predictions_df['error'].loc[predictions_df.error >= threshold].values.astype(bool)
     #print('Anomalies founded {}'.format(anomaly.value_counts()[1]))
-    
+
     return predictions_df, anomaly
 
 def plot_anomalies_model(data, test_date, anomalies, select='LSTM',anomalies_svm=None, anomalies_forest=None):
-    
+
     # data and anomaly are dataframes
     fig = plt.figure(figsize=(24,4))
     spec = gridspec.GridSpec(ncols=2, nrows=1, width_ratios=[1, 3])
@@ -573,7 +578,7 @@ def plot_anomalies_model(data, test_date, anomalies, select='LSTM',anomalies_svm
         ax1.scatter(data[data['anomaly_LSTM']==1].index, data[data['anomaly_LSTM']==1]['Temp_Mod'], color='red', s=30, label='LSTM anomalies')
         ax1.set_title('Anomalies detected in the last days')
         ax1.legend()
-        
+
     if select == 'all':
         ax0 = fig.add_subplot(spec[0])
         sns.distplot(a=data[test_date:]['Temp_Mod'], kde=False, ax=ax0, label='Data')
@@ -589,7 +594,7 @@ def plot_anomalies_model(data, test_date, anomalies, select='LSTM',anomalies_svm
         ax1.scatter(anomalies_forest[test_date:].index, anomalies_forest[test_date:]['Temp_Mod'], color='orange', s=40, label='Isolation Forest')
         ax1.set_title('Anomalies detected in the last days')
         ax1.legend()
-        
+
     if select=='others':
         ax0 = fig.add_subplot(spec[0])
         sns.distplot(a=data['Temp_Mod'], kde=False, ax=ax0)
@@ -597,55 +602,55 @@ def plot_anomalies_model(data, test_date, anomalies, select='LSTM',anomalies_svm
         ax1 = fig.add_subplot(spec[1])
         sns.lineplot(data.index, data['Temp_Mod'], ax=ax1)
         ax1.scatter(anomalies.index, anomalies['Temp_Mod'], color='red', s=20)
-    
+
     plt.tight_layout()
-    
+
 def isolation_forest(data, n_estimators=50, outliers_fraction=0.01, scaler=StandardScaler()):
-    
+
     df = data.copy()
     index = data.index
     df.reset_index(inplace=True, drop=True)
 
     #scaler = StandardScaler() #Scale the data to unit variance. We only fit in the Training data
     train = pd.DataFrame(scaler.fit_transform(df), columns=[df.columns]) # Scale the data and convert it into dataframe for easy splitting
-    
-    # train isolation forest 
+
+    # train isolation forest
     model =  IsolationForest(contamination=outliers_fraction, n_estimators=50, max_samples='auto', max_features=1.0)
     model.fit(train)
-    
+
     # add the data to the main
     df['scores_isolation_f'] = pd.Series(model.decision_function(train))
     df['anomaly_IsolationF'] = pd.Series(model.predict(train))
     df['anomaly_IsolationF'] = df['anomaly_IsolationF'].map( {1: 0, -1: 1} )
     #print(df['anomaly_IsolationF'].value_counts())
-    
+
     df = df.set_index(index, drop=True)
     # anomalies marked as 1
     anomaly_Iforest = df.loc[df['anomaly_IsolationF'] == 1, ['Temp_Mod']] #anomaly
-    
+
     return df, anomaly_Iforest
 
 def oneClass_SVM(data, nu=0.95, outliers_fraction=0.01, scaler=StandardScaler()):
-    
+
     df = data.copy()
     index = data.index
     df.reset_index(inplace=True, drop=True)
 
     #scaler = StandardScaler() #Scale the data to unit variance. We only fit in the Training data
     train = pd.DataFrame(scaler.fit_transform(df), columns=[df.columns]) # Scale the data and convert it into dataframe for easy splitting
-    
-    # train isolation forest 
+
+    # train isolation forest
     model =  OneClassSVM(nu=nu * outliers_fraction) #nu=0.95 * outliers_fraction  + 0.05
     model.fit(train)
-    
-    # add the data to the main  
+
+    # add the data to the main
     df['anomaly_SVM'] = pd.Series(model.predict(train))
     df['anomaly_SVM'] = df['anomaly_SVM'].map( {1: 0, -1: 1} )
-    
+
     df = df.set_index(index, drop=True)
     # anomalies marked as 1
     anomaly_svm = df.loc[df['anomaly_SVM'] == 1, ['Temp_Mod']] #anomaly
-    
+
     return df, anomaly_svm
 
 def forecast_LSTM(model, X_train, X_test, n_timesteps, n_features):
@@ -659,9 +664,11 @@ def forecast_LSTM(model, X_train, X_test, n_timesteps, n_features):
         current_pred = model.predict(current_batch)[0]
 
         # store prediction
-        test_predictions.append(current_pred) 
+        test_predictions.append(current_pred)
 
         # update batch to now include prediction and drop first value
         current_batch = np.append(current_batch[:,1:,:],[[current_pred]],axis=1)
-        
+
     return test_predictions
+
+    RADIOS, RECEIVERS, POWERS = get_radios_rec_powers(df)

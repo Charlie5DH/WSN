@@ -3,15 +3,13 @@ Explore data from a WSN in a Hydroelectric using Machine Learning methods and Py
 
 A wireless sensor network (WSN) is a collaborative network that contains a collection of sensor nodes, each of which has a power source, and is able to individually and autonomously complete the function of discovering and maintaining routing to other sensors through wireless links.
 
-A WSN deployed in an industrial environment must assure an acceptable degree of reliability and security, thus, robust network design is required. Traditional methods, in which the propagation channel is evaluated through point-to-point communication links prior to the network installation, are frequently not executed in complex Electric Power System.<br>
-Similar to other EPS environments, power plants are complex facilities that present strict regulations for safety, making the wireless channel analysis difficult with the conventional point-to-point methods. Therefore, it is often the case that the radio nodes of the WSN are initially located near the spots where specific equipment needs to be monitored, and then the number of routers and their hardware settings are adjusted following a trial-and-error procedure until a stable topology is achieved. This recurrent procedure may not yield an optimum result from the standpoint of the number of nodes, redundancy, power consumption, etc.<br>
+### Data
 
-- As an alternative to characterize the channel of communication the authors have propose that the use of the RSSI data registered by the WSN nodes can then be used as a characterization method, and consequently, as a tool for improving the settings of the installed network.
-- Through the analysis RSSI data, long-term mean values are obtained and used as a basis for comparing the channel behavior to events related to operations on the power plant that occurred on particular days. Complementary to this, we discuss how the recorded data can reveal issues about the functioning of specific nodes.
-- Through a cross-correlation analysis of the measured RSSI data of each bidirectional link, it is possible to estimate the rate of increase on the transmission power of each node, which is directly related to the quality of the links.
-- High-level RSSI values registered during recordings, which are treated as undesired information when modeling the channel, can be co-related to the electromagnetic interference (EMI) sources present in the power plant. 
+The data comes from the Hydroelectric Power Plant Cachoeira Dourada (MG, Brazil), available at this link: http://cloud.traceback.com.br/wsn/wsn_001/journal_ufsc.html in journal files.  The extracted data and the CSV file with all combined is in https://drive.google.com/file/d/1FrHvWn6LV07Cr1v8F4M5h3x2uOiuNQNC/view?usp=sharing. The state of the system can be seen in snapshots at this link: http://cloud.traceback.com.br/wsn/dashlist_cdsa.html. It is important to note that the system has been live since 2017-09-20, with no reset. The link drops that occurred in this period were recovered by the Zigbee PRO stack. The most stable period was from July / 2018, before that we noticed many problems. The UG3 and UG5 routers are powered by AC from the dam, so each time they do maintenance, these nodes fall off and take some others along. And the router diagram can be seen in the coordinators page.
 
-The data comes from the Hydroelectric Power Plant Cachoeira Dourada (MG, Brazil) The systems consist in 7 Routers and 1 Coordinator, total of 8 Routers. The location of the radios can be seen in the image.
+### Problem Description
+
+The systems consist in 7 Routers and 1 Coordinator, total of 8 Routers. The location of the radios can be seen in the image. 
 
 1. **There are 8 locations and 1 Router for every location.**
 2. **Each router gives information about it's temperature and bus voltage using channels 7 and 6 respectively and a timestamp.**
@@ -47,6 +45,8 @@ routers (relays), so each one was able to establish different routes to communic
 The radios are able to automatically increase their transmission power to improve their link quality
 
 <img src="images\\Router_Location.jpg" style="width:800px;heigth:600px"/> 
+
+
 
 ## Requirements
 

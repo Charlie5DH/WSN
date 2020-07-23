@@ -46,7 +46,7 @@ def add_date_features(df):
     Adds hour, day, month, week, weekday and daylight features.
     Considers day from 7:00 am to 7:00 Pm.
     '''
-    df.reset_index(inplace=True)
+    # df.reset_index(inplace=True)
     # take date features from timeseries
     df['hour'] = df['Timestamp'].dt.hour
     df['day'] = df['Timestamp'].dt.day

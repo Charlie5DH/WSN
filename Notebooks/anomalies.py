@@ -25,13 +25,6 @@ from sklearn.covariance import EllipticEnvelope
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
 
-import keras
-from keras.models import Sequential
-from keras.layers import Flatten, Dense, Dropout, Reshape, GlobalAveragePooling1D
-from keras.layers import Conv2D, MaxPooling2D, Conv1D, MaxPooling1D
-from keras.utils import to_categorical
-from sklearn.metrics import classification_report, confusion_matrix
-from keras.layers.recurrent import LSTM
 from keras.models import model_from_json
 
 def add_date_features(df):

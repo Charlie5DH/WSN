@@ -9,3 +9,5 @@
 **RSSI_Data_Exploration** is an exploratory data analysis of the RSSI data.
 
 **Anomalies** notebook is for anomaly detection in this dataset.
+
+**Modules_Data_Exploration** is for exploratory data analysis of other features, like temperature. Don't include RSSI data.

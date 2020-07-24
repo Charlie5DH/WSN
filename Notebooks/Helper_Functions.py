@@ -33,56 +33,97 @@ from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-import keras
-from keras.models import Sequential
-from keras.layers import Flatten, Dense, Dropout, Reshape, GlobalAveragePooling1D
-from keras.layers import Conv2D, MaxPooling2D, Conv1D, MaxPooling1D
-from keras.utils import to_categorical
-from sklearn.metrics import classification_report, confusion_matrix
-from keras.layers.recurrent import LSTM
-from keras.models import model_from_json
-
 from IPython.display import HTML
 
 # Helper functions for later
 
-def get_radios_rec_powers(df):
-    RADIOS = df.Module.unique()[:7]
-    RADIOS = np.append(RADIOS, df.Module.unique()[-1])
-    POWERS = ['P_Tx1(dbm)', 'P_Tx2(dbm)', 'P_Tx3(dbm)', 'P_Tx4(dbm)', 'P_Tx5(dbm)', 'P_Tx6(dbm)', 'P_Tx7(dbm)']
-    RECEIVERS = np.array(df_powers['Receiver'].unique())
-    return RADIOS, RECEIVERS, POWERS
+def add_date_features(df):
+    '''
+    Function for adding date features to any dataset.
+    The function first resets the index considering the Timestamp
+    is set as index.
+    Adds hour, day, month, week, weekday and daylight features.
+    Considers day from 7:00 am to 7:00 Pm.
+    '''
+    # df.reset_index(inplace=True)
+    # take date features from timeseries
+    df['hour'] = df['Timestamp'].dt.hour
+    df['day'] = df['Timestamp'].dt.day
+    df['month'] = df['Timestamp'].dt.month
+    df['week'] = df['Timestamp'].dt.week
+    df['weekday'] = df['Timestamp'].dt.weekday
+    df['daylight'] = ((df['hour'] >= 7) & (df['hour'] <= 19)).astype(int)
+    df.set_index('Timestamp', drop=True, inplace=True)
+    return df
 
-def drop_power(df, Powers):
-    # for dropping the -9 dbm value
-    # Powers is a dictionary with the names
-    # of the columns
+def drop_power(df, Powers, value=-9):
+    '''
+    for dropping the -9 dbm value
+    Powers is a dictionary with the names
+    of the columns. Considers the original dataset.
+    '''
     for ii in Powers:
         indexx = df[df[ii] == -9].index
         df = df.drop(df.index[indexx], axis=0)
         df.reset_index(inplace=True, drop=True)
     return df
 
-def create_RSSI_dataframe(df_powers, plot=True, start_date='2018-01-01', end_date='2018-02-16', raw=True, resample_time='60Min'):
+def get_radios(df):
+    '''
+    Get the names of the radio modules in the base dataframe.
+    return a list of string.
+    '''
+    Radios = df.Module.unique()[:7]
+    Radios = np.append(Radios, df.Module.unique()[-1])
+    return Radios
 
-    receiver = np.array(df_powers['Receiver'].unique())
+def get_receivers(df):
+    '''
+    Get the names of the receivers, this names are different than the others
+    cause they are in an hexadecimal way (0x0xxx)
+    '''
+    return np.array(df['Receiver'].unique())
+
+def create_RSSI_dataframe(df_powers, df, plot=True, start_date='2018-01-01', end_date='2018-02-16', raw=True, resample_time='60Min'):
+    '''
+    This functions returns the entire dataset with the RSSI
+    aranged by receiver.
+    The original dataset is aranged by Neighbours, one Neighbour can have data from
+    many different modules with different RSSI levels, this makes harder the analysis
+    of timeseries. This functions arange the dataset in receivers, therefor, makes easier
+    the working with timeseries.
+
+    df_powers: Dataset with RSSI values.
+    df: Dataset with othere features and modules names (this can be improved)
+    plot: if plot==True then plots the RSSI data from every receiver
+    start_date: start date in case you want to take just a slice
+    end date: ending date for slice
+    raw: if raw==True the data is plotted as raw values (only applies to plot)
+    resample_time: in case raw==False this is the time for resample. Default as 1Hour.
+
+    return: dff; The dataset aranged by receivers with the raw values.
+
+    '''
+    receivers = get_receivers(df_powers)
+    radios = get_radios(df)
 
     dff = pd.DataFrame(data=None)
-    for i in range(len(receiver)):
+    for i in range(len(receivers)):
         subset, serie, transmitters, Tx = arange_RSSI_serie(df_powers, receiver=i, start_date=start_date, end_date=end_date, plot=False, plot_entire=False)
-        serie['Receiver'] = RADIOS[i]
+        serie['Receiver'] = radios[i]
         dff = pd.concat([dff, serie])
 
     if plot==True:
         color=['b','r','m','g','c','orange', 'y', 'grey']
-        fig, axes = plt.subplots(nrows=receiver.shape[0], ncols=1, figsize=(24,28), sharey=True, sharex=True)
+        fig, axes = plt.subplots(nrows=receivers.shape[0], ncols=1, figsize=(24,28), sharey=True, sharex=True)
         fig.suptitle('RSSI data from every receiver radio', x=0.5, y=1.02, fontsize=20)
-        for ii, ax in zip(RADIOS, axes):
+        for ii, ax in zip(radios, axes):
             if raw == True:
                 dff[dff['Receiver']==ii].dropna(axis=1, how='all').plot(ax=ax)
             else:
                 dff[dff['Receiver']==ii].dropna(axis=1, how='all').resample(resample_time).mean().plot(ax=ax)
             ax.tick_params(labelrotation=0)
+            ax.set_yticks(np.arange(-10, -100, step=-10))
             ax.set_title('RSSI from {}'.format(ii))
             ax.legend(loc='upper right')
         plt.tight_layout()
@@ -90,6 +131,22 @@ def create_RSSI_dataframe(df_powers, plot=True, start_date='2018-01-01', end_dat
     return dff
 
 def arange_RSSI_serie(df_powers, receiver=0, start_date='2018-01-01', end_date='2018-02-16', sharex=False, sharey=True, figsize=(24,14), joint=True, plot=True, plot_entire=True):
+    '''
+    This functions returns a dataframe of RSSI data aranged by transmitters.
+    Returns all the data transmitted to one single receiver.
+
+    df_powers: Dataset with RSSI values.
+    receiver = 0: The receiver selected. Default is Coordinator.
+    plot: if plot==True then plots the RSSI data from every receiver
+    start_date: start date in case you want to take just a slice
+    end date: ending date for slice
+    sharex: if sharex==True then all data shares the same x axis, else, every graph
+            will have different x axis.
+    joint: if joint==True then all data will be plotted in a single graph
+    plot_entire: if this is True, then will plot the original Neighbour to see the difference.
+
+    return: dff; The dataset aranged by receivers with the raw values.
+    '''
 
     Receivers = np.array(df_powers['Receiver'].unique())
     subset = df_powers[df_powers['Receiver'] == Receivers[receiver]][start_date:end_date]
@@ -193,11 +250,18 @@ def plot_reciprocal_RSSI(dff):
         plt.tight_layout()
 
 def dist_transmissions(df, receiver, Receivers, ax, start_date ='2018-01-01', end_date='2018-01-10'):
+    '''
+    Correct way to  use it:
+    for rec, ax in zip(range(len(RECEIVERS)), axes.flat):
+        dist_transmissions(df_powers, rec, RECEIVERS, ax)
 
+    Plots a Distribution of the RSSI of Transmitters to Every Receiver
+    '''
     subset, serie, transmitters, Tx = arange_RSSI_serie(df, receiver, joint=True, plot=False)
     for i in serie.columns:
         sns.distplot(serie[i].dropna(), kde=False, label=i, bins=20, axlabel='Receiver '+ Receivers[receiver], ax=ax)
         ax.legend()
+        ax.set_xticks(np.arange(-10, -100, step=-10))
     plt.tight_layout()
 
 def boxplot_PowerMod_date(dff, Tx='0x0057FE05', palette='Set3', date_arr=['day','weekday','week','hour'], sharey=True):
@@ -208,7 +272,6 @@ def boxplot_PowerMod_date(dff, Tx='0x0057FE05', palette='Set3', date_arr=['day',
     sns.boxplot(x=date_arr[1], y=Tx, data=dff, ax=axarr[1], palette='Set3')
     sns.boxplot(x=date_arr[2], y=Tx, data=dff, ax=axarr[2], palette='Set3')
     sns.boxplot(x=date_arr[3], y=Tx, data=dff, ax=axarr[3], palette='Set3')
-
 
 def plot_by_date(dff, by='hour', nrows=2, ncols=4, figsize=(24,7)):
     fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize, sharex=False, sharey=True)
@@ -223,7 +286,7 @@ def plot_by_date(dff, by='hour', nrows=2, ncols=4, figsize=(24,7)):
 def append_temperatures_toRSSI(df, df_powers, Modules, start_date, end_date, resample_time='30S'):
     '''
     append the temperatures of the receiver radio
-    and the temperature from transmitters
+    and the temperature from transmitters.
     '''
     subset, serie, transmitters, Tx = arange_RSSI_serie(df_powers, receiver=0,start_date=start_date, end_date=end_date, joint=True, plot=False)
 

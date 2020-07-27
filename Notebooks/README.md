@@ -11,3 +11,5 @@
 **Anomalies** notebook is for anomaly detection in this dataset.
 
 **Modules_Data_Exploration** is for exploratory data analysis of other features, like temperature. Don't include RSSI data.
+
+**.py** files are custom modules to import in notebooks

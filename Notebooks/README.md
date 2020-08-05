@@ -8,8 +8,10 @@
 
 **RSSI_Data_Exploration** is an exploratory data analysis of the RSSI data.
 
-**Anomalies** notebook is for anomaly detection in this dataset.
+**Anomalies** notebook is for anomaly detection in this dataset, trying methods like SVM, IsolationForest, LSTM and LSTM + Autoencoders.
 
 **Modules_Data_Exploration** is for exploratory data analysis of other features, like temperature. Don't include RSSI data.
 
 **.py** files are custom modules to import in notebooks
+
+**Time Series Analysis in Temperature** Analysis of temperature as time serie. Trend, Seasonality, Forecasting with SARIMA.

@@ -47,13 +47,14 @@ def add_date_features(df):
     '''
     # df.reset_index(inplace=True)
     # take date features from timeseries
-    df['hour'] = df['Timestamp'].dt.hour
-    df['day'] = df['Timestamp'].dt.day
-    df['month'] = df['Timestamp'].dt.month
-    df['week'] = df['Timestamp'].dt.week
-    df['weekday'] = df['Timestamp'].dt.weekday
+    df['hour'] = df.index.hour
+    df['day'] = df.index.day
+    df['month'] = df.index.month
+    df['week'] = df.index.week
+    df['weekday'] = df.index.weekday
     df['daylight'] = ((df['hour'] >= 7) & (df['hour'] <= 19)).astype(int)
-    df.set_index('Timestamp', drop=True, inplace=True)
+    df['weekend'] = ((df['weekday'] >= 5) & (df['weekday'] <= 6)).astype(int)
+    #df.set_index('Timestamp', drop=True, inplace=True)
     return df
 
 def drop_power(df, Powers, value=-9):

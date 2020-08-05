@@ -5,7 +5,7 @@ A wireless sensor network (WSN) is a collaborative network that contains a colle
 
 ### Data
 
-The data comes from the Hydroelectric Power Plant Cachoeira Dourada (MG, Brazil), available at this link: http://cloud.traceback.com.br/wsn/wsn_001/journal_ufsc.html in journal files. The extracted data and the CSV file with all but the RSSI combined is in https://drive.google.com/file/d/1FrHvWn6LV07Cr1v8F4M5h3x2uOiuNQNC/view?usp=sharing and the CSV with the extracted RSSI in here https://drive.google.com/file/d/1CJ2gMGHWHt7aM0wH0L7lAgxefcpQZTRV/view?usp=sharing. The state of the system can be seen in snapshots at this link: http://cloud.traceback.com.br/wsn/dashlist_cdsa.html. 
+The data comes from the Hydroelectric Power Plant Cachoeira Dourada (MG, Brazil), available at [this link][Journals] in journal files. The extracted data and the CSV file with all but the RSSI combined is in [this drive][Features] and the CSV with the extracted RSSI in [here][RSSI]. The state of the system can be seen in snapshots at [this link][Snapshots]. 
 
 It is important to note that the system has been live since 2017-09-20, with no reset. The link drops that occurred in this period were recovered by the Zigbee PRO stack. The most stable period was from July / 2018, before that we noticed many problems. The UG3 and UG5 routers are powered by AC from the dam, so each time they do maintenance, these nodes fall off and take some others along. And the router diagram can be seen in the coordinators page.
 
@@ -67,3 +67,8 @@ The radios are able to automatically increase their transmission power to improv
 - https://www.machinelearningplus.com/time-series/time-series-analysis-python/
 - http://ataspinar.com/
 - https://towardsdatascience.com/anomaly-detection-with-time-series-forecasting-c34c6d04b24a
+
+[Journals]: http://cloud.traceback.com.br/wsn/wsn_001/journal_ufsc.html
+[Features]: https://drive.google.com/file/d/1FrHvWn6LV07Cr1v8F4M5h3x2uOiuNQNC/view?usp=sharing
+[RSSI]: https://drive.google.com/file/d/1CJ2gMGHWHt7aM0wH0L7lAgxefcpQZTRV/view?usp=sharing
+[Snapshots]: http://cloud.traceback.com.br/wsn/dashlist_cdsa.html

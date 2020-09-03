@@ -53,7 +53,7 @@ The radios are able to automatically increase their transmission power to improv
 ## Requirements
 
 - Keras 2.0.3
-- TensorFlow 1.0.0
+- TensorFlow 2.0.0
 - Python3
 - sickit-learn 0.18.2, numpy, pandas
 

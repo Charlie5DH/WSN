@@ -5,7 +5,7 @@ A wireless sensor network (WSN) is a collaborative network that contains a colle
 
 ### Data
 
-The data comes from a Hydroelectric Power Plant. The extracted data and the CSV file with all but the RSSI combined is in [this drive][Features] and the CSV with the extracted RSSI in [here][RSSI]. 
+The data comes from a Hydroelectric Power Plant. The extracted data and the CSV file with all but the RSSI combined is in [this drive][Features] and the CSV with the extracted RSSI in [here][RSSI] (Password protected). 
 
 It is important to note that the system has been live since 2017-09-20, with no reset. The link drops that occurred in this period were recovered by the Zigbee PRO stack. The most stable period was from July / 2018, before that we noticed many problems. The UG3 and UG5 routers are powered by AC from the dam, so each time they do maintenance, these nodes fall off and take some others along. And the router diagram can be seen in the coordinators page.
 
